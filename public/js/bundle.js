@@ -20191,7 +20191,7 @@
 	          // Color scale using temp
 	          var colorScale = _d2.default.scale.quantile().domain(_d2.default.extent(chartData, function (d) {
 	            return d.temp;
-	          })).range(['hsla(0, 25%, 20%, 0.3)', 'hsla(0, 25%, 40%, 0.3)', '#a2a2ca', '#a2caa2', '#cacaca', '#caa2a2', '#823232']);
+	          })).range(['hsl(0, 25%, 20%)', 'hsl(0, 25%, 40%)', '#a2a2ca', '#a2caa2', '#cacaca', '#caa2a2', '#823232']);
 
 	          var data = {
 	            tempatures: chartData,
