@@ -13,7 +13,7 @@ const target = process.env.NODE_ENV || 'development'
 
 const config = {
   resolve: {
-    extendsions: ['', '.js', '.jsx']
+    extendsions: ['', '.js', '.jsx', '.scss']
   },
   entry: {
     bundle: PATHS.app.src
@@ -26,7 +26,8 @@ const config = {
   module: {
     preLoaders: [
       {
-        text: /\.jsx?$/,
+        test: /\.jsx?$/,
+        exclude: /node_modules/,
         loader: 'eslint'
       }
     ],
@@ -35,6 +36,11 @@ const config = {
         test: /\.jsx?$/,
         include: PATHS.app.src,
         loader: 'babel'
+      },
+      {
+        test: /\.scss/,
+        include: PATHS.app.src,
+        loaders: ['style', 'css', 'sass']
       }
     ]
   },

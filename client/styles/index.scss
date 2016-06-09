@@ -1,0 +1,35 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto:400,300italic,300,700,700italic,400italic);
+
+$black: #0a0202;
+
+:root {
+  font: {
+    family: "Roboto", sans-serif;
+    size: 15px;
+  }
+}
+
+figure {
+  margin: auto;
+
+  svg {
+    display: block;
+    margin: auto;
+    font: {
+      size: 12px;
+    }
+
+    .axis {
+      path,
+      line {
+        fill: none;
+        stroke: $black;
+        stroke-width: 1px;
+      }
+    }
+  }
+}
+
+.sub-heading {
+  font-size: 0.6em;
+}

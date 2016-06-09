@@ -16,6 +16,8 @@ const html = html => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
+  <link href='https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic,700,700italic' rel='stylesheet' type='text/css'>
+  
   <title>Heat Map</title>
 </head>
 
