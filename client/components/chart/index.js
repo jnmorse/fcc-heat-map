@@ -1,9 +1,9 @@
 import React from 'react'
-import axios from 'axios'
 import d3 from 'd3'
+import Cell from './cell'
+import LedgendLabel from './legend-label'
 
-
-const cellHeight = (680 - 20) / 12
+const cellHeight = (640 - 20) / 12
 
 /**
  * Render the Chart
@@ -11,19 +11,23 @@ const cellHeight = (680 - 20) / 12
  * @param  {object} data  The data to render the map
  * @return {Array}        Array of elements
  */
-function renderChart({xScale, colorScale, tempatures}) {
-  return tempatures.map(temp => (
-    <rect
-      key={JSON.stringify(temp)}
-      x={xScale(new Date().setFullYear(temp.year))}
-      y={20 + cellHeight * (temp.month - 1)}
-      fill={colorScale(temp.temp)}
-      width={5}
-      stroke={'rgba(40, 20, 20, 0.15)'}
-      strokeWidth={1}
-      height={cellHeight}
-    />
-  ))
+function renderChart(data) {
+  const { xScale, colorScale, tempatures } = data
+  return tempatures.map(d => {
+    return (
+      <Cell
+        key={JSON.stringify(d)}
+        x={xScale(new Date().setFullYear(d.year))}
+        y={20 + cellHeight * (d.month - 1)}
+        data-temp={d.temp}
+        data-variance={d.variance}
+        data-year={d.year}
+        fill={colorScale(d.temp)}
+        width={5}
+        height={cellHeight}
+      />
+    )
+  })
 }
 
 /**
@@ -41,60 +45,66 @@ export default class Chart extends React.Component {
     error: false
   }
 
-  /**
-   * Get data and prepare scales
-   *
-   * @return {Promise} Promise to return setup data
-   */
-  setup() {
-    return new Promise((resolve, reject) => {
-      const request = axios.get('https://raw.githubusercontent.com/FreeCodeCamp/ProjectReferenceData/master/global-temperature.json')
-
-      request.catch(() => reject('There was a problem loading data'))
-
-      request.then(response => {
-        const { monthlyVariance, baseTemperature } = response.data
-
-        const chartData = monthlyVariance.map(month => {
-          return Object.assign({}, month, { temp: +baseTemperature + +month.variance })
-        })
-
-        // xScale using year
-        const xScale = d3.time.scale()
-          .domain(d3.extent(chartData, d => new Date().setFullYear(d.year)))
-          .range([80, 1200])
-
-        // Color scale using temp
-        const colorScale = d3.scale.quantile()
-          .domain(d3.extent(chartData, d => d.temp))
-          .range([
-            'hsl(0, 25%, 20%)',
-            'hsl(0, 25%, 40%)',
-            '#a2a2ca',
-            '#a2caa2',
-            '#cacaca',
-            '#caa2a2',
-            '#823232'
-          ])
-
-        const data = {
-          tempatures: chartData,
-          xScale,
-          colorScale
-        }
-
-        resolve(data)
-      })
+  static propTypes = {
+    data: React.PropTypes.shape({
+      monthlyVariance: React.PropTypes.array,
+      baseTemperature: React.PropTypes.number
     })
   }
 
-  componentDidMount() {
-    this.setup()
-      .then(data => this.setState({ data }))
-      .catch(error => this.setState({ error }))
+  componentWillMount() {
+    const { monthlyVariance, baseTemperature } = this.props.data
+
+    const chartData = monthlyVariance.map(month => {
+      return Object.assign({}, month, { temp: baseTemperature + +month.variance })
+    })
+
+    const xScale = d3.time.scale()
+      .domain(d3.extent(chartData, d => new Date().setFullYear(d.year)))
+      .range([80, 1200])
+
+    const colorScale = d3.scale.quantile()
+      .domain(d3.extent(chartData, d => d.temp))
+      .range([
+        'hsl(200, 100%, 50%)',
+        'hsl(200, 100%, 70%)',
+        'hsl(230, 30%, 50%)',
+        'hsl(230, 30%, 70%)',
+        'hsl(122, 30%, 50%)',
+        'hsl(122, 30%, 70%)',
+        'hsl(340, 30%, 50%)',
+        'hsl(340, 100%, 50%)',
+        'hsl(0, 100%, 50%)',
+        'hsl(0, 100%, 70%)',
+        'hsl(160, 60%, 75%)'
+      ])
+
+    const data = {
+      tempatures: chartData,
+      xScale,
+      colorScale
+    }
+
+    this.setState({ data })
   }
 
-  componentDidUpdate() {
+  showTooltip({ target }) {
+    const xmlns = 'http://www.w3.org/2000/svg'
+    const tooltip = document.createElementNS(xmlns, 'text')
+    const x = +target.getAttribute('x') + 20
+    const y = +target.getAttribute('y') + 20
+    tooltip.setAttributeNS(null, 'x', x)
+    tooltip.setAttributeNS(null, 'y', y)
+
+    const year = document.createTextNode(target.getAttribute('data-year'))
+    tooltip.appendChild(year)
+
+    this._svg.appendChild(tooltip)
+
+    setTimeout(() => this._svg.removeChild(tooltip), 1000)
+  }
+
+  componentDidMount() {
     if (this.state.data.xScale) {
       const xAxis = d3.svg.axis()
         .scale(this.state.data.xScale)
@@ -121,6 +131,31 @@ export default class Chart extends React.Component {
       'December'
     ]
 
+    const ledgend = () => {
+      const { colorScale } = this.state.data
+
+      if (colorScale) {
+        return (
+          <g transform='translate(900,670)'>
+            <text x={0} y={15}>{'Ledgend'}</text>
+            <LedgendLabel x={60} y={0} color={colorScale(0)} label='0' />
+            <LedgendLabel x={80} y={0} color={colorScale(3)} label='3' />
+            <LedgendLabel x={100} y={0} color={colorScale(4)} label='4' />
+            <LedgendLabel x={120} y={0} color={colorScale(6)} label='6' />
+            <LedgendLabel x={140} y={0} color={colorScale(7)} label='7' />
+            <LedgendLabel x={160} y={0} color={colorScale(8)} label='8' />
+            <LedgendLabel x={180} y={0} color={colorScale(9)} label='9' />
+            <LedgendLabel x={200} y={0} color={colorScale(10)} label='10' />
+            <LedgendLabel x={220} y={0} color={colorScale(11)} label='11' />
+            <LedgendLabel x={240} y={0} color={colorScale(12)} label='12' />
+            <LedgendLabel x={260} y={0} color={colorScale(13)} label='13' />
+          </g>
+        )
+      }
+
+      return null
+    }
+
     return (
       <figure className='chart'>
         {this.state.error && <div className='error'>{'There was a problem loading the data'}</div>}
@@ -137,19 +172,27 @@ export default class Chart extends React.Component {
           </p>
         </figcaption>
 
-        <svg width={1280} height={720}>
+        <svg
+          width={1280}
+          height={720}
+          ref={svg => { this._svg = svg }}
+          style={{
+            display: 'block',
+            margin: 'auto'
+          }}
+        >
           <g>
             {renderChart(this.state.data)}
           </g>
 
           <g>
-            {this.state.data.colorScale && <rect x={0} y={0} width={20} height={20} fill={this.state.data.colorScale(0)} />}
+            {ledgend()}
           </g>
 
           <g
             className='axis'
             ref={elem => { this._xAxis = elem }}
-            transform='translate(0,680)'
+            transform='translate(0,640)'
           />
 
           <g>
