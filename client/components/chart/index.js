@@ -76,17 +76,17 @@ export default class Chart extends React.Component {
     const colorScale = d3.scale.quantile()
       .domain(d3.extent(chartData, d => d.temp))
       .range([
-        'hsl(200, 100%, 50%)',
-        'hsl(200, 100%, 70%)',
-        'hsl(230, 30%, 50%)',
-        'hsl(230, 30%, 70%)',
-        'hsl(122, 30%, 50%)',
-        'hsl(122, 30%, 70%)',
-        'hsl(340, 30%, 50%)',
-        'hsl(340, 100%, 50%)',
-        'hsl(0, 100%, 50%)',
-        'hsl(0, 100%, 70%)',
-        'hsl(160, 60%, 75%)'
+        'hsl(200, 100%, 30%)',
+        'hsl(200, 90%, 40%)',
+        'hsl(200, 80%, 50%)',
+        'hsl(200, 70%, 60%)',
+        'hsl(200, 60%, 70%)',
+        'hsl(200, 50%, 80%)',
+        'hsl(0, 60%, 70%)',
+        'hsl(0, 70%, 60%)',
+        'hsl(0, 80%, 50%)',
+        'hsl(0, 90%, 40%)',
+        'hsl(0, 100%, 30%)'
       ])
 
     const data = {
@@ -138,7 +138,6 @@ export default class Chart extends React.Component {
 
     if (year) {
       this._tooltip = document.createElementNS(xmlns, 'g')
-      // const offset = this._svg.getBoundingClientRect()
 
       const cursor = this.getCursorPos({ x: clientX, y: clientY })
       const pos = { x: cursor.x - 55, y: cursor.y + 15 }
@@ -152,7 +151,7 @@ export default class Chart extends React.Component {
       )
 
       this._tooltip.appendChild(
-        this.addTextNode({ ...pos, y: pos.y + 20 }, `variance ${variance}`)
+        this.addTextNode({ ...pos, y: pos.y + 20 }, `Variance ${variance}`)
       )
 
       this._tooltip.appendChild(
@@ -160,8 +159,6 @@ export default class Chart extends React.Component {
       )
 
       this._svg.appendChild(this._tooltip)
-
-      // setTimeout(() => this._svg.removeChild(tooltip), 1000)
     }
   }
 
@@ -247,9 +244,7 @@ export default class Chart extends React.Component {
           ref={svg => { this._svg = svg }}
           style={{
             display: 'block',
-            margin: 'auto',
-            maxWidth: '90%',
-            height: 'auto'
+            margin: 'auto'
           }}
         >
           <g>
