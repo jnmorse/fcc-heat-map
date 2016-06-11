@@ -9,7 +9,7 @@
     "lint": "eslint .",
     "dev": "node dev-server.js",
     "prebuild": "npm run lint",
-    "build": "webpack"
+    "build": "NODE_ENV=production webpack -p"
   },
   "keywords": [],
   "author": "Joseph Morse <tamed.lionheart@gmail.com> (https://github.com/jnmorse)",

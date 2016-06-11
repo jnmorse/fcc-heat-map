@@ -4,6 +4,7 @@ import Cell from './cell'
 import LedgendLabel from './legend-label'
 
 const cellHeight = (640 - 20) / 12
+const xmlns = 'http://www.w3.org/2000/svg'
 
 /**
  * Render the Chart
@@ -11,7 +12,7 @@ const cellHeight = (640 - 20) / 12
  * @param  {object} data  The data to render the map
  * @return {Array}        Array of elements
  */
-function renderChart(data) {
+function renderChart(data, tooltipHandler, hideTooltip) {
   const { xScale, colorScale, tempatures } = data
   return tempatures.map(d => {
     return (
@@ -22,6 +23,8 @@ function renderChart(data) {
         data-temp={d.temp}
         data-variance={d.variance}
         data-year={d.year}
+        onMouseOver={event => tooltipHandler(event)}
+        onMouseOut={() => hideTooltip()}
         fill={colorScale(d.temp)}
         width={5}
         height={cellHeight}
@@ -50,6 +53,13 @@ export default class Chart extends React.Component {
       monthlyVariance: React.PropTypes.array,
       baseTemperature: React.PropTypes.number
     })
+  }
+
+  constructor(props) {
+    super(props)
+
+    this.showTooltip = this.showTooltip.bind(this)
+    this.hideTooltip = this.hideTooltip.bind(this)
   }
 
   componentWillMount() {
@@ -88,20 +98,72 @@ export default class Chart extends React.Component {
     this.setState({ data })
   }
 
-  showTooltip({ target }) {
-    const xmlns = 'http://www.w3.org/2000/svg'
-    const tooltip = document.createElementNS(xmlns, 'text')
-    const x = +target.getAttribute('x') + 20
-    const y = +target.getAttribute('y') + 20
-    tooltip.setAttributeNS(null, 'x', x)
-    tooltip.setAttributeNS(null, 'y', y)
+  addRectNode({x, y, width, height}) {
+    const rect = document.createElementNS(xmlns, 'rect')
+    rect.setAttributeNS(null, 'x', x)
+    rect.setAttributeNS(null, 'rx', 10)
+    rect.setAttributeNS(null, 'y', y)
+    rect.setAttributeNS(null, 'ry', 10)
+    rect.setAttributeNS(null, 'width', width)
+    rect.setAttributeNS(null, 'height', height)
+    rect.setAttributeNS(null, 'fill', 'rgba(20, 20, 20, 0.8)')
 
-    const year = document.createTextNode(target.getAttribute('data-year'))
-    tooltip.appendChild(year)
+    return rect
+  }
 
-    this._svg.appendChild(tooltip)
+  addTextNode({x, y}, value) {
+    const textNode = document.createElementNS(xmlns, 'text')
+    value = document.createTextNode(value)
 
-    setTimeout(() => this._svg.removeChild(tooltip), 1000)
+    textNode.setAttributeNS(null, 'x', x + 10)
+    textNode.setAttributeNS(null, 'y', y + 20)
+    textNode.setAttributeNS(null, 'fill', 'white')
+    textNode.appendChild(value)
+
+    return textNode
+  }
+
+  showTooltip({ clientX, clientY, target}) {
+    const year = target.getAttribute('data-year'),
+      variance = target.getAttribute('data-variance'),
+      temp = parseFloat(target.getAttribute('data-temp')).toFixed(2) + ' C'
+
+    if (year) {
+      this._tooltip = document.createElementNS(xmlns, 'g')
+      const offset = this._svg.getBoundingClientRect()
+
+      const pos = {
+        x: clientX - offset.left - 30,
+        y: clientY - offset.top + 30
+      }
+
+      this._tooltip.appendChild(
+        this.addRectNode({...pos, width: 110, height: 75})
+      )
+
+      this._tooltip.appendChild(
+        this.addTextNode(pos, `Year: ${year}`)
+      )
+
+      this._tooltip.appendChild(
+        this.addTextNode({ ...pos, y: pos.y + 20 }, `variance ${variance}`)
+      )
+
+      this._tooltip.appendChild(
+        this.addTextNode({ ...pos, y: pos.y + 40 }, `Temp: ${temp}`)
+      )
+
+      this._svg.appendChild(this._tooltip)
+
+      // setTimeout(() => this._svg.removeChild(tooltip), 1000)
+    }
+  }
+
+  hideTooltip() {
+    if (this._tooltip) {
+      this._svg.removeChild(this._tooltip)
+      this._tooltip = null
+    }
   }
 
   componentDidMount() {
@@ -182,7 +244,7 @@ export default class Chart extends React.Component {
           }}
         >
           <g>
-            {renderChart(this.state.data)}
+            {renderChart(this.state.data, this.showTooltip, this.hideTooltip)}
           </g>
 
           <g>
