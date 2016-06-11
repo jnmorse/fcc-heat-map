@@ -123,6 +123,14 @@ export default class Chart extends React.Component {
     return textNode
   }
 
+  getCursorPos({ x, y }) {
+    const pt = this._svg.createSVGPoint()
+    pt.x = x
+    pt.y = y
+
+    return pt.matrixTransform(this._svg.getScreenCTM().inverse())
+  }
+
   showTooltip({ clientX, clientY, target}) {
     const year = target.getAttribute('data-year'),
       variance = target.getAttribute('data-variance'),
@@ -130,12 +138,10 @@ export default class Chart extends React.Component {
 
     if (year) {
       this._tooltip = document.createElementNS(xmlns, 'g')
-      const offset = this._svg.getBoundingClientRect()
+      // const offset = this._svg.getBoundingClientRect()
 
-      const pos = {
-        x: clientX - offset.left - 30,
-        y: clientY - offset.top + 30
-      }
+      const cursor = this.getCursorPos({ x: clientX, y: clientY })
+      const pos = { x: cursor.x - 55, y: cursor.y + 15 }
 
       this._tooltip.appendChild(
         this.addRectNode({...pos, width: 110, height: 75})
@@ -237,10 +243,13 @@ export default class Chart extends React.Component {
         <svg
           width={1280}
           height={720}
+          viewBox='0,0,1280,720'
           ref={svg => { this._svg = svg }}
           style={{
             display: 'block',
-            margin: 'auto'
+            margin: 'auto',
+            maxWidth: '90%',
+            height: 'auto'
           }}
         >
           <g>
