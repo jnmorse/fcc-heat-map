@@ -1,7 +1,9 @@
 import React from 'react'
+import PropTypes from 'prop-types'
+
 import Chart from './components/chart'
 
-export default function App({ data }) {
+function App({ data }) {
   return (
     <div>
       <Chart data={data} />
@@ -11,6 +13,8 @@ export default function App({ data }) {
 
 /* eslint-disable react/forbid-prop-types */
 App.propTypes = {
-  data: React.PropTypes.object
+  data: PropTypes.object.isRequired
 }
 /* eslint-enable */
+
+export default App

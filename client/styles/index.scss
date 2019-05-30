@@ -5,7 +5,7 @@ $black: #0a0202;
 :root {
   font: {
     family: "Roboto", sans-serif;
-    size: 15px;
+    size: calc(1vw + 14px);
   }
 }
 
@@ -14,7 +14,7 @@ figure {
 
   svg {
     font: {
-      size: 12px;
+      size: 14px;
     }
 
     .axis {

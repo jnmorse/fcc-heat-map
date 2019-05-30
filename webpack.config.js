@@ -11,6 +11,8 @@ const PATHS = {
 
 const target = process.env.NODE_ENV || 'development'
 
+let finalConfig
+
 const config = {
   resolve: {
     extendsions: ['', '.js', '.jsx', '.scss']
@@ -24,21 +26,14 @@ const config = {
     publicPath: '/'
   },
   module: {
-    preLoaders: [
-      {
-        test: /\.jsx?$/,
-        exclude: /node_modules/,
-        loader: 'eslint'
-      }
-    ],
     loaders: [
       {
-        test: /\.jsx?$/,
+        test: /\.jsx?$/u,
         include: PATHS.app.src,
         loader: 'babel'
       },
       {
-        test: /\.scss/,
+        test: /\.scss/u,
         include: PATHS.app.src,
         loaders: ['style', 'css', 'sass']
       }
@@ -52,7 +47,7 @@ const config = {
 }
 
 if (target === 'development') {
-  module.exports = merge(config, {
+  finalConfig = merge(config, {
     entry: {
       bundle: [
         'react-hot-loader/patch',
@@ -68,8 +63,8 @@ if (target === 'development') {
       new webpack.HotModuleReplacementPlugin()
     ]
   })
+} else {
+  finalConfig = merge(config, {})
 }
 
-else {
-  module.exports = merge(config, {})
-}
+module.exports = finalConfig

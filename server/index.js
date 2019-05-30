@@ -2,28 +2,11 @@ import express from 'express'
 import React from 'react'
 // import path from 'path'
 import { renderToString } from 'react-dom/server'
-import App from '../client/app'
 import axios from 'axios'
 
-const app = express()
-const API_URL = 'https://raw.githubusercontent.com/FreeCodeCamp/ProjectReferenceData/master/global-temperature.json'
+import App from '../client/app'
 
-app.use(express.static('public'))
-
-app.use((req, res, next) => {
-  axios.get(API_URL)
-    .then(response => {
-      req.data = response.data
-      next()
-    })
-    .catch(error => next(error))
-})
-
-app.get('*', (req, res) => {
-  res.send(html(renderToString(<App data={req.data} />), req.data))
-})
-
-const html = (html, state) => `
+const html = (renderedComponent, state) => `
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -36,7 +19,7 @@ const html = (html, state) => `
 </head>
 
 <body>
-  <div id="app">${html}</div>
+  <div id="app">${renderedComponent}</div>
   <script>
     var INIT_STATE = ${JSON.stringify(state)}
   </script>
@@ -44,5 +27,26 @@ const html = (html, state) => `
 </body>
 </html>
 `
+
+const app = express()
+
+const API_URL =
+  'https://raw.githubusercontent.com/FreeCodeCamp/ProjectReferenceData/master/global-temperature.json'
+
+app.use(express.static('public'))
+
+app.use((req, res, next) => {
+  axios
+    .get(API_URL)
+    .then(response => {
+      req.data = response.data
+      next()
+    })
+    .catch(error => next(error))
+})
+
+app.get('*', (req, res) => {
+  res.send(html(renderToString(<App data={req.data} />), req.data))
+})
 
 module.exports = app

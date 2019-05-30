@@ -1,7 +1,10 @@
+/* eslint-disable class-methods-use-this */
 import React from 'react'
+import PropTypes from 'prop-types'
 import d3 from 'd3'
 import Cell from './cell'
 import LedgendLabel from './legend-label'
+import Caption from './caption'
 
 const cellHeight = (640 - 20) / 12
 const xmlns = 'http://www.w3.org/2000/svg'
@@ -24,7 +27,9 @@ function renderChart(data, tooltipHandler, hideTooltip) {
         data-variance={d.variance}
         data-year={d.year}
         onMouseOver={event => tooltipHandler(event)}
+        onFocus={event => tooltipHandler(event)}
         onMouseOut={() => hideTooltip()}
+        onBlur={() => hideTooltip()}
         fill={colorScale(d.temp)}
         width={5}
         height={cellHeight}
@@ -39,6 +44,13 @@ function renderChart(data, tooltipHandler, hideTooltip) {
  * @class
  */
 export default class Chart extends React.Component {
+  static propTypes = {
+    data: PropTypes.shape({
+      monthlyVariance: PropTypes.array,
+      baseTemperature: PropTypes.number
+    }).isRequired
+  }
+
   state = {
     data: {
       xScale: null,
@@ -48,32 +60,22 @@ export default class Chart extends React.Component {
     error: false
   }
 
-  static propTypes = {
-    data: React.PropTypes.shape({
-      monthlyVariance: React.PropTypes.array,
-      baseTemperature: React.PropTypes.number
-    })
-  }
-
-  constructor(props) {
-    super(props)
-
-    this.showTooltip = this.showTooltip.bind(this)
-    this.hideTooltip = this.hideTooltip.bind(this)
-  }
-
   componentWillMount() {
-    const { monthlyVariance, baseTemperature } = this.props.data
+    const {
+      data: { monthlyVariance, baseTemperature }
+    } = this.props
 
     const chartData = monthlyVariance.map(month => {
-      return Object.assign({}, month, { temp: baseTemperature + +month.variance })
+      return { ...month, temp: baseTemperature + +month.variance }
     })
 
-    const xScale = d3.time.scale()
+    const xScale = d3.time
+      .scale()
       .domain(d3.extent(chartData, d => new Date().setFullYear(d.year)))
       .range([80, 1200])
 
-    const colorScale = d3.scale.quantile()
+    const colorScale = d3.scale
+      .quantile()
       .domain(d3.extent(chartData, d => d.temp))
       .range([
         'hsl(200, 100%, 30%)',
@@ -98,7 +100,27 @@ export default class Chart extends React.Component {
     this.setState({ data })
   }
 
-  addRectNode({x, y, width, height}) {
+  getCursorPos({ x, y }) {
+    const pt = this.svg.createSVGPoint()
+    pt.x = x
+    pt.y = y
+
+    return pt.matrixTransform(this.svg.getScreenCTM().inverse())
+  }
+
+  addTextNode({ x, y }, value) {
+    const textNode = document.createElementNS(xmlns, 'text')
+    const thisValue = document.createTextNode(value)
+
+    textNode.setAttributeNS(null, 'x', x + 10)
+    textNode.setAttributeNS(null, 'y', y + 20)
+    textNode.setAttributeNS(null, 'fill', 'white')
+    textNode.appendChild(thisValue)
+
+    return textNode
+  }
+
+  addRectNode({ x, y, width, height }) {
     const rect = document.createElementNS(xmlns, 'rect')
     rect.setAttributeNS(null, 'x', x)
     rect.setAttributeNS(null, 'rx', 10)
@@ -111,76 +133,59 @@ export default class Chart extends React.Component {
     return rect
   }
 
-  addTextNode({x, y}, value) {
-    const textNode = document.createElementNS(xmlns, 'text')
-    value = document.createTextNode(value)
-
-    textNode.setAttributeNS(null, 'x', x + 10)
-    textNode.setAttributeNS(null, 'y', y + 20)
-    textNode.setAttributeNS(null, 'fill', 'white')
-    textNode.appendChild(value)
-
-    return textNode
-  }
-
-  getCursorPos({ x, y }) {
-    const pt = this._svg.createSVGPoint()
-    pt.x = x
-    pt.y = y
-
-    return pt.matrixTransform(this._svg.getScreenCTM().inverse())
-  }
-
-  showTooltip({ clientX, clientY, target}) {
-    const year = target.getAttribute('data-year'),
-      variance = target.getAttribute('data-variance'),
-      temp = parseFloat(target.getAttribute('data-temp')).toFixed(2) + ' C'
+  showTooltip({ clientX, clientY, target }) {
+    const year = target.getAttribute('data-year')
+    const variance = target.getAttribute('data-variance')
+    const temp = `${parseFloat(target.getAttribute('data-temp')).toFixed(2)} C`
 
     if (year) {
-      this._tooltip = document.createElementNS(xmlns, 'g')
+      this.tooltip = document.createElementNS(xmlns, 'g')
 
       const cursor = this.getCursorPos({ x: clientX, y: clientY })
       const pos = { x: cursor.x - 55, y: cursor.y + 15 }
 
-      this._tooltip.appendChild(
-        this.addRectNode({...pos, width: 110, height: 75})
+      this.tooltip.appendChild(
+        this.addRectNode({ ...pos, width: 110, height: 75 })
       )
 
-      this._tooltip.appendChild(
-        this.addTextNode(pos, `Year: ${year}`)
-      )
+      this.tooltip.appendChild(this.addTextNode(pos, `Year: ${year}`))
 
-      this._tooltip.appendChild(
+      this.tooltip.appendChild(
         this.addTextNode({ ...pos, y: pos.y + 20 }, `Variance ${variance}`)
       )
 
-      this._tooltip.appendChild(
+      this.tooltip.appendChild(
         this.addTextNode({ ...pos, y: pos.y + 40 }, `Temp: ${temp}`)
       )
 
-      this._svg.appendChild(this._tooltip)
+      this.svg.appendChild(this.tooltip)
     }
   }
 
   hideTooltip() {
-    if (this._tooltip) {
-      this._svg.removeChild(this._tooltip)
-      this._tooltip = null
+    if (this.tooltip) {
+      this.svg.removeChild(this.tooltip)
+      this.tooltip = null
     }
   }
 
   componentDidMount() {
-    if (this.state.data.xScale) {
-      const xAxis = d3.svg.axis()
-        .scale(this.state.data.xScale)
+    const {
+      data: { xScale }
+    } = this.state
+
+    if (xScale) {
+      const xAxis = d3.svg
+        .axis()
+        .scale(xScale)
         .ticks(d3.time.years, 20)
         .orient('bottom')
 
-      d3.select(this._xAxis).call(xAxis)
+      d3.select(this.xAxis).call(xAxis)
     }
   }
 
-  render() {
+  renderMonths() {
     const months = [
       'January',
       'Febuary',
@@ -196,83 +201,83 @@ export default class Chart extends React.Component {
       'December'
     ]
 
-    const ledgend = () => {
-      const { colorScale } = this.state.data
+    return months.map((month, index) => (
+      <text key={month} x={10} y={20 + cellHeight * index} dy={cellHeight / 2}>
+        {month}
+      </text>
+    ))
+  }
 
-      if (colorScale) {
-        return (
-          <g transform='translate(900,670)'>
-            <text x={0} y={15}>{'Ledgend'}</text>
-            <LedgendLabel x={60} y={0} color={colorScale(0)} label='0' />
-            <LedgendLabel x={80} y={0} color={colorScale(3)} label='3' />
-            <LedgendLabel x={100} y={0} color={colorScale(4)} label='4' />
-            <LedgendLabel x={120} y={0} color={colorScale(6)} label='6' />
-            <LedgendLabel x={140} y={0} color={colorScale(7)} label='7' />
-            <LedgendLabel x={160} y={0} color={colorScale(8)} label='8' />
-            <LedgendLabel x={180} y={0} color={colorScale(9)} label='9' />
-            <LedgendLabel x={200} y={0} color={colorScale(10)} label='10' />
-            <LedgendLabel x={220} y={0} color={colorScale(11)} label='11' />
-            <LedgendLabel x={240} y={0} color={colorScale(12)} label='12' />
-            <LedgendLabel x={260} y={0} color={colorScale(13)} label='13' />
-          </g>
-        )
-      }
-
-      return null
+  legend = () => {
+    const {
+      data: { colorScale }
+    } = this.state
+    if (colorScale) {
+      return (
+        <g transform="translate(900,670)">
+          <text x={0} y={15}>
+            {'Ledgend'}
+          </text>
+          <LedgendLabel x={60} y={0} color={colorScale(0)} label="0" />
+          <LedgendLabel x={80} y={0} color={colorScale(3)} label="3" />
+          <LedgendLabel x={100} y={0} color={colorScale(4)} label="4" />
+          <LedgendLabel x={120} y={0} color={colorScale(6)} label="6" />
+          <LedgendLabel x={140} y={0} color={colorScale(7)} label="7" />
+          <LedgendLabel x={160} y={0} color={colorScale(8)} label="8" />
+          <LedgendLabel x={180} y={0} color={colorScale(9)} label="9" />
+          <LedgendLabel x={200} y={0} color={colorScale(10)} label="10" />
+          <LedgendLabel x={220} y={0} color={colorScale(11)} label="11" />
+          <LedgendLabel x={240} y={0} color={colorScale(12)} label="12" />
+          <LedgendLabel x={260} y={0} color={colorScale(13)} label="13" />
+        </g>
+      )
     }
 
+    return null
+  }
+
+  render() {
+    const { data, error } = this.state
+
     return (
-      <figure className='chart'>
-        {this.state.error && <div className='error'>{'There was a problem loading the data'}</div>}
-        <figcaption style={{ textAlign: 'center' }}>
-          <h1>
-            <div>{'Monthly Global Land-Surface Temperature'}</div>
-            <div>{'Temperatures are in Celsius and reported as anomalies relative to the Jan 1951-Dec 1980 average.'}</div>
-          </h1>
-          <p>
-            {'Temperatures are in Celsius and reported as anomalies relative to the Jan 1951-Dec 1980 average.'}
-          </p>
-          <p>
-            {'Estimated Jan 1951-Dec 1980 absolute temperature ℃: 8.66 +/- 0.07'}
-          </p>
-        </figcaption>
+      <figure className="chart">
+        {error && (
+          <div className="error">{'There was a problem loading the data'}</div>
+        )}
+
+        <Caption />
 
         <svg
           width={1280}
           height={720}
-          viewBox='0,0,1280,720'
-          ref={svg => { this._svg = svg }}
+          viewBox="0,0,1280,720"
+          ref={svg => {
+            this.svg = svg
+          }}
           style={{
             display: 'block',
             margin: 'auto'
           }}
         >
           <g>
-            {renderChart(this.state.data, this.showTooltip, this.hideTooltip)}
+            {renderChart(
+              data,
+              event => this.showTooltip(event),
+              event => this.hideTooltip(event)
+            )}
           </g>
 
-          <g>
-            {ledgend()}
-          </g>
+          <g>{this.legend()}</g>
 
           <g
-            className='axis'
-            ref={elem => { this._xAxis = elem }}
-            transform='translate(0,640)'
+            className="axis"
+            ref={elem => {
+              this.xAxis = elem
+            }}
+            transform="translate(0,640)"
           />
 
-          <g>
-            {months.map((month, index) => (
-              <text
-                key={month}
-                x={10}
-                y={20 + cellHeight * index}
-                dy={cellHeight / 2}
-              >
-                {month}
-              </text>
-            ))}
-          </g>
+          <g>{this.renderMonths()}</g>
         </svg>
       </figure>
     )
