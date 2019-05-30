@@ -1,4 +1,4 @@
-require('babel-register')()
+require('@babel/register')()
 
 const PORT = process.env.PORT || 3000
 

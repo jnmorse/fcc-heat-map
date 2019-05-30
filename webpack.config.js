@@ -15,7 +15,7 @@ let finalConfig
 
 const config = {
   resolve: {
-    extendsions: ['', '.js', '.jsx', '.scss']
+    extensions: ['.js', '.jsx', '.scss']
   },
   entry: {
     bundle: PATHS.app.src
@@ -26,28 +26,39 @@ const config = {
     publicPath: '/'
   },
   module: {
-    loaders: [
+    rules: [
       {
         test: /\.jsx?$/u,
         include: PATHS.app.src,
-        loader: 'babel'
+        exclude: /node_modules/u,
+        use: [
+          {
+            loader: 'babel-loader'
+          }
+        ]
       },
       {
         test: /\.scss/u,
         include: PATHS.app.src,
-        loaders: ['style', 'css', 'sass']
+        use: [
+          {
+            loader: 'style-loader'
+          },
+          {
+            loader: 'css-loader'
+          },
+          {
+            loader: 'sass-loader'
+          }
+        ]
       }
     ]
-  },
-  plugins: [
-    new webpack.DefinePlugin({
-      'process.env.NODE_ENV': JSON.stringify(process.env.NODE_ENV)
-    })
-  ]
+  }
 }
 
 if (target === 'development') {
   finalConfig = merge(config, {
+    mode: 'development',
     entry: {
       bundle: [
         'react-hot-loader/patch',
@@ -59,12 +70,12 @@ if (target === 'development') {
     devtool: 'inline-source-map',
     plugins: [
       new webpack.optimize.OccurrenceOrderPlugin(),
-      new webpack.NoErrorsPlugin(),
+      new webpack.NoEmitOnErrorsPlugin(),
       new webpack.HotModuleReplacementPlugin()
     ]
   })
 } else {
-  finalConfig = merge(config, {})
+  finalConfig = merge(config, { mode: 'production' })
 }
 
 module.exports = finalConfig
