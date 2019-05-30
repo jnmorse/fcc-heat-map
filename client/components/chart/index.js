@@ -1,7 +1,8 @@
 /* eslint-disable class-methods-use-this */
 import React from 'react'
 import PropTypes from 'prop-types'
-import d3 from 'd3'
+import { scaleTime, scaleQuantile, extent, axisBottom, select } from 'd3'
+
 import Cell from './cell'
 import LedgendLabel from './legend-label'
 import Caption from './caption'
@@ -69,14 +70,12 @@ export default class Chart extends React.Component {
       return { ...month, temp: baseTemperature + +month.variance }
     })
 
-    const xScale = d3.time
-      .scale()
-      .domain(d3.extent(chartData, d => new Date().setFullYear(d.year)))
+    const xScale = scaleTime()
+      .domain(extent(chartData, d => new Date().setFullYear(d.year)))
       .range([80, 1200])
 
-    const colorScale = d3.scale
-      .quantile()
-      .domain(d3.extent(chartData, d => d.temp))
+    const colorScale = scaleQuantile()
+      .domain(extent(chartData, d => d.temp))
       .range([
         'hsl(200, 100%, 30%)',
         'hsl(200, 90%, 40%)',
@@ -175,13 +174,9 @@ export default class Chart extends React.Component {
     } = this.state
 
     if (xScale) {
-      const xAxis = d3.svg
-        .axis()
-        .scale(xScale)
-        .ticks(d3.time.years, 20)
-        .orient('bottom')
+      const xAxis = axisBottom(xScale)
 
-      d3.select(this.xAxis).call(xAxis)
+      select(this.xAxis).call(xAxis)
     }
   }
 
