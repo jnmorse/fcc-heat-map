@@ -37,16 +37,16 @@
     "prop-types": "^15.7.2",
     "react": "^16.8.6",
     "react-dom": "^16.8.6",
-    "react-hot-loader": "^4.8.8",
-    "webpack": "^4.32.2",
-    "webpack-dev-server": "^3.4.1"
+    "react-hot-loader": "^4.9.0",
+    "webpack": "^4.33.0",
+    "webpack-dev-server": "^3.7.1"
   },
   "devDependencies": {
     "babel-loader": "^8.0.6",
     "core-js": "^3.1.3",
     "css-loader": "^2.1.1",
     "eslint": "^5.16.0",
-    "eslint-config-jnmorse": "^2.3.1",
+    "eslint-config-jnmorse": "^2.4.0",
     "file-loader": "^3.0.1",
     "lodash": "^4.13.1",
     "node-sass": "^4.12.0",
@@ -54,7 +54,7 @@
     "sass-loader": "^7.1.0",
     "style-loader": "^0.23.1",
     "url-loader": "^1.1.2",
-    "webpack-cli": "^3.3.2",
+    "webpack-cli": "^3.3.3",
     "webpack-dev-middleware": "^3.7.0",
     "webpack-hot-middleware": "^2.10.0",
     "webpack-merge": "^4.2.1"
