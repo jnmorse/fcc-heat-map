@@ -45,11 +45,13 @@ function renderChart(data, tooltipHandler, hideTooltip) {
  * @class
  */
 export default class Chart extends React.Component {
-  static propTypes = {
-    data: PropTypes.shape({
-      monthlyVariance: PropTypes.array,
-      baseTemperature: PropTypes.number
-    }).isRequired
+  static get propTypes() {
+    return {
+      data: PropTypes.shape({
+        monthlyVariance: PropTypes.array,
+        baseTemperature: PropTypes.number
+      }).isRequired
+    }
   }
 
   state = {
