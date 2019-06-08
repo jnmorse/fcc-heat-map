@@ -1,7 +1,11 @@
 /* eslint-disable class-methods-use-this */
 import React from 'react'
 import PropTypes from 'prop-types'
-import { scaleTime, scaleQuantile, extent, axisBottom, select } from 'd3'
+import { select } from 'd3-selection'
+import { axisBottom } from 'd3-axis'
+import scaleQuantile from 'd3-scale/src/quantile'
+import scaleTime from 'd3-scale/src/time'
+import extent from 'd3-array/src/extent'
 
 import Cell from './cell'
 import LedgendLabel from './legend-label'
