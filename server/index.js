@@ -1,6 +1,5 @@
 import express from 'express'
 import React from 'react'
-// import path from 'path'
 import { renderToString } from 'react-dom/server'
 import axios from 'axios'
 
