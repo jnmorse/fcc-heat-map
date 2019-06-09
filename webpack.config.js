@@ -1,11 +1,11 @@
-const path = require('path')
+const { resolve } = require('path')
 const webpack = require('webpack')
 const merge = require('webpack-merge')
 
 const PATHS = {
   app: {
-    src: path.resolve(__dirname, 'client'),
-    build: path.resolve(__dirname, 'public')
+    src: resolve(__dirname, 'client'),
+    build: resolve(__dirname, 'public')
   }
 }
 
@@ -14,6 +14,7 @@ const target = process.env.NODE_ENV || 'development'
 let finalConfig
 
 const config = {
+  name: 'client',
   resolve: {
     extensions: ['.js', '.jsx', '.scss']
   },

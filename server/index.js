@@ -2,6 +2,7 @@ import express from 'express'
 import React from 'react'
 import { renderToString } from 'react-dom/server'
 import axios from 'axios'
+import compression from 'compression'
 
 import App from '../client/app'
 
@@ -11,10 +12,12 @@ const html = (renderedComponent, state) => `
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+	<meta name="description" content="Monthly Global Land-Surface Temperature">
 
   <title>Heat Map</title>
 
-  <link href='https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic,700,700italic' rel='stylesheet' type='text/css'>
+  <link rel="stylesheet" href="styles/bundle.css" type="text/css">
+  <link href="https://fonts.googleapis.com/css?family=Roboto:400,300,300italic,400italic,700,700italic" rel="stylesheet" type="text/css">
 </head>
 
 <body>
@@ -27,14 +30,15 @@ const html = (renderedComponent, state) => `
 </html>
 `
 
-const app = express()
+const expressApp = express()
 
 const API_URL =
   'https://raw.githubusercontent.com/FreeCodeCamp/ProjectReferenceData/master/global-temperature.json'
 
-app.use(express.static('public'))
+expressApp.use(compression())
+expressApp.use(express.static('build/client'))
 
-app.use((req, res, next) => {
+expressApp.use((req, res, next) => {
   axios
     .get(API_URL)
     .then(response => {
@@ -44,8 +48,12 @@ app.use((req, res, next) => {
     .catch(error => next(error))
 })
 
-app.get('*', (req, res) => {
+expressApp.get('/robots.txt', (req, res) => {
+  res.send('')
+})
+
+expressApp.get('*', (req, res) => {
   res.send(html(renderToString(<App data={req.data} />), req.data))
 })
 
-module.exports = app
+export default expressApp

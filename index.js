@@ -1,8 +1,6 @@
-require('@babel/register')()
-
 const PORT = process.env.PORT || 3000
 
-const server = require('./server')
+const server = require('./build/server').default
 
 server.listen(PORT, err => {
   /* eslint-disable no-console */

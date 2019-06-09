@@ -1,0 +1,20 @@
+@import url(https://fonts.googleapis.com/css?family=Roboto:400,300italic,300,700,700italic,400italic);
+:root {
+  font-family: "Roboto", sans-serif;
+  font-size: calc(0.3vw + 14px); }
+
+figure {
+  margin: auto; }
+  figure svg {
+    font-size: 14px; }
+    figure svg .axis path,
+    figure svg .axis line {
+      fill: none;
+      stroke: #0a0202;
+      stroke-width: 1px; }
+
+.sub-heading {
+  font-size: 0.6em; }
+
+
+/*# sourceMappingURL=bundle.css.map*/
